@@ -20,6 +20,8 @@ ABasePawn::ABasePawn()
 	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
 	TurretMesh->SetupAttachment(BaseMesh);
 
+	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawnPoint"));
+	ProjectileSpawnPoint->SetupAttachment(TurretMesh);
 }
 
 void ABasePawn::RotateTurret(FVector LookAtTarget)
@@ -34,5 +36,24 @@ void ABasePawn::RotateTurret(FVector LookAtTarget)
 
 	TurretMesh->SetWorldRotation(LookAtRotation);
 
+}
+
+void ABasePawn::Fire()
+{
+	FVector SpawnLocation = ProjectileSpawnPoint->GetComponentLocation();
+	FRotator SpawnRotation = ProjectileSpawnPoint->GetComponentRotation();
+
+	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+	if (Projectile)
+	{
+		Projectile->SetOwner(this);
+	}
+}
+
+void ABasePawn::HandleDestruction()
+{
+	if (DeathParticles) {
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, DeathParticles, GetActorLocation(), GetActorRotation());
+	}
 }
 

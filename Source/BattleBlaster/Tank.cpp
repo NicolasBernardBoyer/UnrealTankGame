@@ -21,13 +21,17 @@ void ATank::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
+	PlayerController = Cast<APlayerController>(Controller);
+
+	if (PlayerController) {
 		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer()) {
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer)) {
 				Subsystem->AddMappingContext(TankMappingContext, 0);
 			}
 		}
 	}
+
+	SetPlayerEnabled(false);
 }
 
 
@@ -37,7 +41,6 @@ void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController) {
 		FHitResult HitResult;
 		PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
@@ -55,6 +58,8 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATank::MoveInput);
 
 		EIC->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ATank::TurnInput);
+
+		EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ATank::Fire);
 	}
 }
 
@@ -76,4 +81,27 @@ void ATank::TurnInput(const FInputActionValue& Value)
 	DeltaRotation.Yaw = TurnRate * InputValue * GetWorld()->GetDeltaSeconds();
 	AddActorLocalRotation(DeltaRotation, true);
 
+}
+
+void ATank::HandleDestruction() {
+	Super::HandleDestruction();
+
+	SetActorHiddenInGame(true);
+	SetActorTickEnabled(false);
+	SetPlayerEnabled(false);
+	isAlive = false;
+}
+
+void ATank::SetPlayerEnabled(bool bPlayerEnabled)
+{
+	if (PlayerController) {
+		if (bPlayerEnabled) {
+			EnableInput(PlayerController);
+		}
+		else {
+			DisableInput(PlayerController);
+		}
+
+		PlayerController->bShowMouseCursor = bPlayerEnabled;
+	}
 }

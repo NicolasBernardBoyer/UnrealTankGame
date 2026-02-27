@@ -43,6 +43,9 @@ public:
 	UInputAction* MoveAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* FireAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* TurnAction;
 
 	UPROPERTY(VisibleAnywhere)
@@ -56,7 +59,14 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float TurnRate = 50.0f;
+
+	bool isAlive = true;
+
+	APlayerController* PlayerController;
 	
 	void MoveInput(const FInputActionValue& Value);
 	void TurnInput(const FInputActionValue& Value);
+
+	void HandleDestruction();
+	void SetPlayerEnabled(bool bPlayerEnabled);
 };
